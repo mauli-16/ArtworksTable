@@ -2,19 +2,21 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-
 import { Paginator, type PaginatorPageChangeEvent } from "primereact/paginator";
+
 
 const Table = () => {
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [first, setFirst] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [rowSelect, setRowSelect] = useState<any[]>([]);
+  
 
   const onPageChange = (event: PaginatorPageChangeEvent) => {
-    const newPage=(event.first/12)+1;
+    const newPage = event.first / 12 + 1;
     setFirst(event.first);
-    setCurrentPage(newPage)
+    setCurrentPage(newPage);
   };
 
   const columns = [
@@ -25,28 +27,25 @@ const Table = () => {
     { field: "date_start", header: "Start Date" },
     { field: "date_end", header: "End Date" },
   ];
-  const fetchArtworks = async (currentPage=1) => {
-      try {
-        setLoading(true);
+  const fetchArtworks = async (currentPage = 1) => {
+    try {
+      setLoading(true);
 
-        const response = await axios.get(
-          `https://api.artic.edu/api/v1/artworks?page=${currentPage}`
-        );
-        console.log(currentPage);
-        
-        setArtworks(response.data.data);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const response = await axios.get(
+        `https://api.artic.edu/api/v1/artworks?page=${currentPage}`
+      );
+      console.log(currentPage);
+
+      setArtworks(response.data.data);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    
-
     fetchArtworks(currentPage);
-
   }, [currentPage]);
 
   if (loading) {
@@ -66,11 +65,16 @@ const Table = () => {
       </h1>
       <div className="card bg-white p-6 rounded-lg shadow-lg">
         <DataTable
+          dataKey="id"
           value={artworks}
           showGridlines
           tableStyle={{ minWidth: "50rem" }}
           className="border-separate border-spacing-x-6 border-spacing-y-2"
+          selection={rowSelect}
+          onSelectionChange={(e) => setRowSelect(e.value)}
         >
+            <Column selectionMode="multiple" headerStyle={{ width: "3rem" }}  header={() => null}/>
+
           {columns.map((col) => (
             <Column
               key={col.field}
