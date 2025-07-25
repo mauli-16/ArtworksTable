@@ -2,11 +2,20 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import "tailwindcss";
+
+import { Paginator, type PaginatorPageChangeEvent } from "primereact/paginator";
 
 const Table = () => {
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [first, setFirst] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  const onPageChange = (event: PaginatorPageChangeEvent) => {
+    const newPage=(event.first/12)+1;
+    setFirst(event.first);
+    setCurrentPage(newPage)
+  };
 
   const columns = [
     { field: "title", header: "Title" },
@@ -16,15 +25,15 @@ const Table = () => {
     { field: "date_start", header: "Start Date" },
     { field: "date_end", header: "End Date" },
   ];
-
-  useEffect(() => {
-    const fetchArtworks = async () => {
+  const fetchArtworks = async (currentPage=1) => {
       try {
         setLoading(true);
 
         const response = await axios.get(
-          "https://api.artic.edu/api/v1/artworks?page=1"
+          `https://api.artic.edu/api/v1/artworks?page=${currentPage}`
         );
+        console.log(currentPage);
+        
         setArtworks(response.data.data);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -33,8 +42,12 @@ const Table = () => {
       }
     };
 
-    fetchArtworks();
-  }, []);
+  useEffect(() => {
+    
+
+    fetchArtworks(currentPage);
+
+  }, [currentPage]);
 
   if (loading) {
     return (
@@ -63,6 +76,7 @@ const Table = () => {
               key={col.field}
               field={col.field}
               header={col.header}
+              headerClassName="text-gray-700 font-bold"
               body={(rowData) => (
                 <span className="text-gray-800 px-4 py-2 block">
                   {rowData[col.field]}
@@ -71,6 +85,15 @@ const Table = () => {
             />
           ))}
         </DataTable>
+      </div>
+      <div className="card">
+        <Paginator
+          first={first}
+          rows={12}
+          totalRecords={129230}
+          //rowsPerPageOptions={[12]}
+          onPageChange={onPageChange}
+        />
       </div>
     </div>
   );
